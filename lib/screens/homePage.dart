@@ -9,6 +9,8 @@ import 'package:to_do_gdsc/widgets/button.dart';
 import 'package:to_do_gdsc/widgets/pin.dart';
 import 'package:to_do_gdsc/widgets/tiles.dart';
 
+import '../services/services.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -20,23 +22,11 @@ class _HomePageState extends State<HomePage> {
   List<ToDoItem> toDoList = [];
   List<ToDoItem> toDoListPinned = [];
 
-  void _removeItem(String documentId) {
-    List<ToDoItem> tempList = [];
-    List<ToDoItem> tempListPinned = [];
-    for (var items in toDoList) {
-      if (items.id != documentId) {
-        tempList.add(items);
-      }
-    }
-    for (var items in toDoListPinned) {
-      if (items.id != documentId) {
-        tempListPinned.add(items);
-      }
-    }
-    setState(() {
-      toDoList = tempList;
-      toDoListPinned = tempListPinned;
-    });
+  final Services _s = Services();
+
+  Future<void> _removeItem(String documentId) async {
+    _s.deleteTodoItem(documentId);
+    await readTasks();
     SnackBar snackBar = const SnackBar(
       content: Text("Task completed successfully"),
       duration: Duration(seconds: 2),
@@ -44,7 +34,28 @@ class _HomePageState extends State<HomePage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void _addItem(String documentId) {}
+  Future<void> readTasks() async {
+    List<ToDoItem> temp = await _s.read() as List<ToDoItem>;
+    List<ToDoItem> dupTasks = [];
+    List<ToDoItem> dupPinedTasks = [];
+    for (var element in temp) {
+      if (element.isPinned) {
+        dupPinedTasks.add(element);
+      }
+      dupTasks.add(element);
+    }
+    setState(() {
+      toDoList = dupTasks;
+      toDoListPinned = dupPinedTasks;
+    });
+  }
+
+  @override
+  void initState() {
+    readTasks();
+
+    super.initState();
+  }
 
   Future<dynamic> showDia() {
     String textTitle = '';
@@ -185,6 +196,8 @@ class _HomePageState extends State<HomePage> {
                   if (_selectedButtonIndex == 3) {
                     _selectedCategory = categories[Categories.Other]!;
                   }
+
+                  //toDoList.add(newItem);
                 });
                 ToDoItem newItem = ToDoItem(
                     title: textTitle,
@@ -192,13 +205,8 @@ class _HomePageState extends State<HomePage> {
                     dateTime: DateTime.parse(dateinput.text),
                     id: textTitle + DateTime.parse(dateinput.text).toString(),
                     isPinned: isPined);
-                setState(() {
-                  toDoList.add(newItem);
-                  if (newItem.isPinned) {
-                    toDoListPinned.add(newItem);
-                  }
-                });
-
+                _s.addTask(newItem);
+                readTasks();
                 Navigator.of(context).pop();
               },
               child: const Text('Submit'),

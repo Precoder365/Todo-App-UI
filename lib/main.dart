@@ -1,9 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:to_do_gdsc/screens/homePage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-void main() {
-  /* WidgetsFlutterBinding.ensureInitialized();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     await Firebase.initializeApp(
         options: const FirebaseOptions(
@@ -13,7 +15,7 @@ void main() {
             projectId: "gdsc-19638"));
   } else {
     Firebase.initializeApp();
-  } */
+  }
   runApp(const MyApp());
 }
 
